@@ -24,6 +24,12 @@ export async function POST(request: Request): Promise<Response> {
   let sessionCookie: string | null = null;
   try {
     const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[create-session] API key check", {
+        hasKey: !!openaiApiKey,
+        keyPrefix: openaiApiKey?.substring(0, 10),
+      });
+    }
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({
@@ -46,6 +52,7 @@ export async function POST(request: Request): Promise<Response> {
     if (process.env.NODE_ENV !== "production") {
       console.info("[create-session] handling request", {
         resolvedWorkflowId,
+        userId,
         body: JSON.stringify(parsedBody),
       });
     }
@@ -61,6 +68,21 @@ export async function POST(request: Request): Promise<Response> {
 
     const apiBase = process.env.CHATKIT_API_BASE ?? DEFAULT_CHATKIT_BASE;
     const url = `${apiBase}/v1/chatkit/sessions`;
+    const requestBody = {
+      workflow: { id: resolvedWorkflowId },
+      user: userId,
+      chatkit_configuration: {
+        file_upload: {
+          enabled:
+            parsedBody?.chatkit_configuration?.file_upload?.enabled ?? false,
+        },
+      },
+    };
+
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[create-session] sending request body", requestBody);
+    }
+
     const upstreamResponse = await fetch(url, {
       method: "POST",
       headers: {
@@ -68,16 +90,7 @@ export async function POST(request: Request): Promise<Response> {
         Authorization: `Bearer ${openaiApiKey}`,
         "OpenAI-Beta": "chatkit_beta=v1",
       },
-      body: JSON.stringify({
-        workflow: { id: resolvedWorkflowId },
-        user: userId,
-        chatkit_configuration: {
-          file_upload: {
-            enabled:
-              parsedBody?.chatkit_configuration?.file_upload?.enabled ?? false,
-          },
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (process.env.NODE_ENV !== "production") {

@@ -274,8 +274,9 @@ export function ChatKitPanel({
     composer: {
       placeholder: PLACEHOLDER_INPUT,
       attachments: {
-        // Enable attachments
         enabled: true,
+        maxCount: 5,
+        maxSize: 10485760, // 10MB
       },
     },
     threadItemActions: {
