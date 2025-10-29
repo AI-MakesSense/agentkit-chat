@@ -110,6 +110,18 @@ If your workflow uses models requiring organization verification:
 - Check Vercel function logs (Dashboard → Deployments → Click deployment → Functions tab)
 - Verify `OPENAI_API_KEY` is set and valid
 
+**ERR_BLOCKED_BY_CLIENT errors (LaunchDarkly, Mixpanel):**
+- These are third-party analytics services used by ChatKit
+- Often blocked by ad blockers (uBlock Origin, Privacy Badger, etc.)
+- The CSP headers in `next.config.ts` have been configured to allow these
+- ChatKit should still work even if these are blocked
+- Test in incognito mode without extensions to verify
+
+**"Orphaned iframed" error:**
+- This is caused by browser extensions (often web scraping or automation tools)
+- Appears in development but won't affect production users
+- Can be safely ignored or test in incognito mode
+
 ## Step 6: Custom Domain (Optional)
 
 To use a custom domain:
